@@ -876,14 +876,7 @@ function promosSeccionHTML(ahora){
   // Título y subtítulo de la campaña (config.js). Vacíos = los de siempre.
   const titulo = cfg.PROMOS_TITULO || 'Promociones';
   const sub = cfg.PROMOS_SUBTITULO || 'Toca un combo, elige tus productos (con sus fotos y videos) y agrégalo: el precio de la promo se aplica solo en tu carrito.';
-  // Banner de la campaña (config.js): se muestra SOLO mientras las promos están visibles,
-  // así desaparece solo con ellas. En celular usa la versión de celular si existe.
-  const banner = cfg.PROMOS_BANNER_PC
-    ? '<picture class="promos-banner">' +
-        (cfg.PROMOS_BANNER_CEL ? '<source media="(max-width:639px)" srcset="' + esc(cfg.PROMOS_BANNER_CEL) + '">' : '') +
-        '<img src="' + esc(cfg.PROMOS_BANNER_PC) + '" alt="' + esc(titulo) + '"></picture>'
-    : '';
-  return '<section class="cat" id="promos">' + banner + '<h2 class="cat-titulo">' + esc(titulo) + '</h2>' +
+  return '<section class="cat" id="promos"><h2 class="cat-titulo">' + esc(titulo) + '</h2>' +
     '<p class="sub-desc">' + esc(sub) + '</p>' +
     (cfg.PROMOS_TITULO ? '<p class="sub-desc">Toca un combo, elige tus productos (con sus fotos y videos) y agrégalo al carrito.</p>' : '') +
     // Los combos que ya no se pueden armar (algo agotado) van al final.
@@ -903,7 +896,14 @@ function renderHeroPromo(ahora){
       '<span class="hero-promo-sub">Terminaron el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · Atento a las próximas</span></a>';
     return;
   }
-  el.innerHTML = '<a class="hero-promo" href="#promos" data-scroll="promos"><span class="hero-promo-titulo">' + esc(cfg.PROMOS_HERO || '🔥 Promos disponibles') + '</span>' +
+  // Banner de la campaña (config.js) en la portada, encima del botón: tocarlo también
+  // baja a las promos. Solo mientras haya promos vigentes; se va solo con ellas.
+  el.innerHTML = (cfg.PROMOS_BANNER_PC
+      ? '<a class="hero-banner" href="#promos" data-scroll="promos"><picture>' +
+          (cfg.PROMOS_BANNER_CEL ? '<source media="(max-width:639px)" srcset="' + esc(cfg.PROMOS_BANNER_CEL) + '">' : '') +
+          '<img src="' + esc(cfg.PROMOS_BANNER_PC) + '" alt="' + esc(cfg.PROMOS_TITULO || 'Promociones') + '"></picture></a>'
+      : '') +
+    '<a class="hero-promo" href="#promos" data-scroll="promos"><span class="hero-promo-titulo">' + esc(cfg.PROMOS_HERO || '🔥 Promos disponibles') + '</span>' +
     '<span class="hero-promo-sub">' + (fines.length ? 'Hasta el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · ' : '') + 'Ver promos →</span></a>';
 }
 
