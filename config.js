@@ -137,6 +137,16 @@ const CATALOGO_CONFIG = {
   // antes de que desaparezca todo lo de promos.
   PROMO_GRACIA_MIN: 5,
 
+  // Título y subtítulo de la sección de promos de ESTA campaña (Halloween, 25 al
+  // 31 de octubre de 2026). Al terminar la campaña: dejarlos vacíos ('') para volver
+  // al título "Promociones" de siempre.
+  PROMOS_TITULO: 'Vuelven las promos Spider 🕷️ · edición Halloween',
+  PROMOS_SUBTITULO: 'Envío gratis en todas · Lima: pide hasta el jueves 29 · Provincia: hasta el martes 27 para que llegue antes de Halloween',
+
+  // Solo para la página de PRUEBAS: muestra las promos aunque todavía no llegue su
+  // fecha de inicio ("Desde" en promos.csv). En el catálogo real va en false.
+  VER_PROMOS_ANTES: true,
+
   // Líneas dentro de una categoría (columna "Linea" de la hoja). Se muestran como
   // etiqueta en la tarjeta (con esta descripción al pasar el cursor) y en la ficha.
   LINEAS: [
