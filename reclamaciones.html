@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>[PRUEBA] Libro de Reclamaciones — Timeless Store</title>
+<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body><div style="position:fixed;left:8px;bottom:8px;z-index:9999;padding:2px 8px;border-radius:6px;background:#f59e0b;color:#000;font:700 11px/1.6 sans-serif;pointer-events:none">MODO PRUEBA</div>
+
+<div class="wrap">
+  <div class="pagina">
+    <a class="volver" href="./">← Volver al catálogo</a>
+    <div class="eyebrow">Timeless Store</div>
+    <h1>📖 Libro de Reclamaciones</h1>
+
+    <!-- El formulario es un Google Forms de Alberto (aparte de todo lo del dashboard).
+         Su link va en config.js -> LIBRO_RECLAMACIONES_FORM. Mientras esté vacío,
+         se muestra el aviso de "falta el formulario". -->
+    <div class="setup-card" id="avisoForm" style="margin:0 0 16px">
+      <div class="setup-title">⚠️ Falta el formulario</div>
+      <div class="setup-body">
+        Mientras terminamos de habilitar el formulario, escríbenos por Instagram
+        (<a id="igLink" href="#" target="_blank" rel="noopener">@<span id="igUser"></span></a>)
+        y atenderemos tu caso.
+      </div>
+    </div>
+
+    <div class="card">
+      <p>Conforme al Código de Protección y Defensa del Consumidor, ponemos a tu disposición
+      nuestro Libro de Reclamaciones Virtual para que registres una queja o un reclamo.</p>
+      <p><b>Proveedor:</b> HERRERA DEL AGUILA JOSE ALBERTO (Timeless Store)<br>
+      <b>RUC:</b> 10729712341<br>
+      <b>Domicilio fiscal:</b> Jr. Villavicencio 168, San Miguel, Lima</p>
+      <p><b>Reclamo:</b> disconformidad con el producto. <b>Queja:</b> disconformidad con la atención, no relacionada con el producto.</p>
+      <p>Al enviar el formulario recibirás una copia en tu correo. Te responderemos en un plazo máximo de <b>15 días hábiles</b>.</p>
+      <a class="btn btn-primario" id="formLink" href="#" target="_blank" rel="noopener" hidden>Llenar la hoja de reclamación</a>
+      <p class="nota-chica" style="margin-top:12px">La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante el Indecopi.</p>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  // Instagram y el link del formulario salen de config.js.
+  (function () {
+    var c = (typeof CATALOGO_CONFIG !== 'undefined') ? CATALOGO_CONFIG : {};
+    var u = c.INSTAGRAM_USUARIO || '';
+    document.getElementById('igUser').textContent = u;
+    document.getElementById('igLink').href = 'https://www.instagram.com/' + encodeURIComponent(u) + '/';
+    if (c.LIBRO_RECLAMACIONES_FORM) {
+      var a = document.getElementById('formLink');
+      a.href = c.LIBRO_RECLAMACIONES_FORM;
+      a.hidden = false;
+      document.getElementById('avisoForm').hidden = true;
+    }
+  })();
+</script>
+</body>
+</html>

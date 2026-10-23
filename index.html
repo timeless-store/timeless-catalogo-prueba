@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<!-- Sin zoom de la página (ni doble toque ni pellizco): el zoom solo existe en las fotos de los productos (ver app.js). -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>[PRUEBA] Timeless Store — Catálogo</title>
+<meta name="description" content="Accesorios de streetwear en Lima: cinturones, collares, pant chains y más. Arma tu pedido, cotiza tu envío y lo coordinamos por WhatsApp o Instagram.">
+<link rel="canonical" href="https://timeless-store.github.io/timeless-catalogo/">
+<meta name="robots" content="noindex, nofollow">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Timeless Store","description":"Tienda de accesorios streetwear en Lima: cinturones, collares y pant chains.","url":"https://timeless-store.github.io/timeless-catalogo/","logo":"https://timeless-store.github.io/timeless-catalogo/icon-512.png","image":"https://timeless-store.github.io/timeless-catalogo/og-imagen.jpg","address":{"@type":"PostalAddress","addressLocality":"San Miguel","addressRegion":"Lima","addressCountry":"PE"},"areaServed":"PE","sameAs":["https://www.instagram.com/timeless.store._/","https://www.tiktok.com/@timeless.store._"]}
+</script>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Timeless">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+
+<!-- Vista previa al compartir el link (WhatsApp, Instagram, Facebook). La imagen
+     va con dirección completa porque esas apps no entienden direcciones cortas. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Timeless Store">
+<meta property="og:title" content="Timeless Store — Catálogo">
+<meta property="og:description" content="Cinturones, collares, pant chains y más. Arma tu pedido, cotiza tu envío y lo coordinamos por WhatsApp o Instagram.">
+<meta property="og:url" content="https://timeless-store.github.io/timeless-catalogo/">
+<meta property="og:image" content="https://timeless-store.github.io/timeless-catalogo/og-imagen.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body><div style="position:fixed;left:8px;bottom:8px;z-index:9999;padding:2px 8px;border-radius:6px;background:#f59e0b;color:#000;font:700 11px/1.6 sans-serif;pointer-events:none">MODO PRUEBA</div>
+
+<!-- Pantalla de carga: negro puro con el logo hasta que el catálogo esté listo.
+     Los estilos van aquí mismo para que se vea negra desde el primer instante. -->
+<div class="carga" id="carga" style="position:fixed;inset:0;z-index:100;background:#000;display:flex;align-items:center;justify-content:center">
+  <img src="img/logo-carga.png" alt="Timeless" style="width:min(62vw,340px);height:auto">
+</div>
+
+<header class="top">
+  <!-- Franja de campañas (Cyber Wow, Black Friday…): se prende en config.js -->
+  <div class="franja" id="franja" role="marquee" hidden></div>
+  <div class="top-in">
+    <a class="marca" href="#" id="marcaLink">
+      <div class="eyebrow">Accesorios streetwear · Lima</div>
+      <img class="marca-logo" src="img/logo-cabecera.png" alt="Timeless Store" width="268" height="120">
+    </a>
+    <a class="carrito-btn" href="#/carrito" aria-label="Ver carrito">
+      Carrito <span class="carrito-num mono" id="carritoNum">0</span>
+    </a>
+  </div>
+  <!-- Atajos a cada categoría (se llenan solos según lo que haya en la hoja) -->
+  <nav class="cats" id="catsNav" aria-label="Categorías"></nav>
+</header>
+
+<div class="wrap">
+
+  <!-- Aviso de modo prueba (solo aparece mientras falte configurar algo en config.js) -->
+  <div class="setup-card" id="setupCard" hidden>
+    <div class="setup-title">⚠️ Página en modo prueba</div>
+    <div class="setup-body" id="setupBody"></div>
+  </div>
+
+  <!-- Inicio: lo primero que ve el cliente. -->
+  <section class="hero">
+    <!-- Foto del inicio (img/inicio.jpg, foto general de varios productos): a la izquierda en PC y arriba en celular, con degradado morado-negro -->
+    <img class="hero-foto-fondo" src="img/inicio.jpg" alt="" aria-hidden="true">
+    <img class="hero-foto" src="img/inicio.jpg" alt="" aria-hidden="true">
+    <div class="hero-eyebrow">Catálogo 2026</div>
+    <!-- Cuando haya anillos disponibles: "Cinturones, collares, pant chains, anillos y más" -->
+    <h1>Cinturones, collares, pant chains y más</h1>
+    <p>Elige lo que te guste, arma tu pedido, cotiza tu envío y lo coordinamos por WhatsApp o Instagram.</p>
+    <!-- Aparece solo cuando hay promos activas (promos.csv) -->
+    <div id="heroPromo"></div>
+    <div class="hero-cta">
+      <a class="btn btn-primario" href="#catalogo" data-scroll="cat-mas-vendidos">Ver catálogo</a>
+      <!-- Escríbenos: se elige WhatsApp o Instagram (Instagram abre directo el chat) -->
+      <div class="escribenos">
+        <button type="button" class="btn" id="escribenosBtn" aria-expanded="false" aria-controls="escribenosMenu">Escríbenos</button>
+        <div class="escribenos-menu" id="escribenosMenu" hidden>
+          <a class="btn btn-wa" id="heroWa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn btn-ig" id="heroIg" href="#" target="_blank" rel="noopener">Instagram</a>
+        </div>
+      </div>
+    </div>
+    <!-- Los tres primeros bajan a "Envíos y pagos". -->
+    <ul class="hero-chips">
+      <li><a href="#envios" data-scroll="envios">Puntos de recojo sin costo</a></li>
+      <li><a href="#envios" data-scroll="envios">Contraentrega en Lima</a></li>
+      <li><a href="#envios" data-scroll="envios">Envíos a todo el Perú por Shalom</a></li>
+    </ul>
+  </section>
+
+  <main id="catalogo">
+    <div class="estado" id="estado">Cargando catálogo…</div>
+  </main>
+
+  <!-- Envíos y pagos: las tarjetas salen de ENVIOS en config.js (lo mismo que el carrito).
+       El Yape se muestra recién en el carrito, al elegir cómo recibir el pedido. -->
+  <section class="cat" id="envios">
+    <h2 class="cat-titulo">Envíos y pagos</h2>
+    <div class="envios" id="enviosCards"></div>
+    <ul class="envios-notas">
+      <li>Solo hacemos envíos dentro del Perú.</li>
+      <li>En cualquier opción también puedes pagar todo por adelantado.</li>
+      <li>Tu pedido queda separado al pagar el envío (delivery) o el producto (Shalom o InDrive), hasta por 1 semana. Para más tiempo, coordínalo por chat.</li>
+      <li>Envío gratis (cinturones de la Línea Premium<span class="solo-promos"> y promos</span>): aplica al delivery con motorizado y a Shalom. Si tu zona está lejos, te avisamos si hay alguna diferencia.</li>
+    </ul>
+    <p class="frase-talla">Aceptamos Yape, Plin y transferencia. En efectivo: en el delivery con el monto exacto (el motorizado no lleva vuelto); en el recojo en San Miguel el vuelto se coordina con nosotros.</p>
+  </section>
+
+  <!-- Clientes: fotos de pedidos entregados (CLIENTES_FOTOS en config.js), en un carrusel que gira solo. -->
+  <section class="cat" id="clientes">
+    <h2 class="cat-titulo">Clientes</h2>
+    <p class="sub-desc">Pedidos que ya llegaron a sus dueños.</p>
+    <div class="clientes" id="clientesCarrusel"></div>
+  </section>
+
+  <!-- Preguntas frecuentes. Se abren tocando la pregunta. -->
+  <section class="cat faq" id="faq">
+    <h2 class="cat-titulo">Preguntas frecuentes</h2>
+    <details>
+      <summary>¿Cuánto demora en llegar mi pedido?</summary>
+      <div class="faq-resp">
+        <p><b>En Lima:</b> el recojo en San Miguel se coordina por chat, y a veces puede ser el mismo día. El envío express por InDrive llega el mismo día o en menos de 24 horas, según disponibilidad. El delivery con motorizado llega al día siguiente de dejarlo, de lunes a sábado de 11am a 7pm; a Ventanilla, Lurín, Lurigancho (Chosica), Ancón y Cieneguilla, en 48 horas.</p>
+        <p><b>En provincias:</b> por Shalom, de 1 a 3 días según la ciudad, contados desde que dejamos tu pedido en la agencia (ese día lo coordinamos por chat). Te mandamos el código de seguimiento.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Cómo pago?</summary>
+      <div class="faq-resp">
+        <p>Con Yape, Plin o transferencia. En efectivo: en el delivery con el monto exacto (el motorizado no lleva vuelto); en el recojo en San Miguel el vuelto se coordina con nosotros por chat.</p>
+        <p>En el recojo y en el delivery de Lima pagas el producto al recibir. Por Shalom e InDrive pagas el producto antes de enviar. En cualquier opción también puedes pagar todo por adelantado.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Cómo separo mi pedido?</summary>
+      <div class="faq-resp">
+        <p>En delivery, adelantando el envío. Por Shalom o InDrive, pagando el producto. Lo separamos hasta por 1 semana; si lo necesitas para más adelante, coordínalo por chat.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Hacen envíos fuera del Perú?</summary>
+      <div class="faq-resp"><p>Por ahora solo enviamos dentro del Perú.</p></div>
+    </details>
+    <details>
+      <summary>¿Cómo sé si el cinturón me queda?</summary>
+      <div class="faq-resp">
+        <p>Mide tu cintura en cm (con una cinta, o usa el número de tu pantalón favorito) y compara con el rango en cm de cada cinto. La talla de pantalón es solo referencial.</p>
+        <p>A los cintos se les pueden hacer huecos extra para cinturas más pequeñas o más grandes, pero depende de cada cinturón: algunos aceptan solo uno y otros varios. Escríbenos y te ayudamos.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Los collares se oxidan?</summary>
+      <div class="faq-resp">
+        <p>Cada producto dice su material. Los de acero inoxidable no se oxidan: aguantan el agua y el uso diario. Los de aleación duran más si evitas mojarlos y el contacto con perfume o químicos, y los guardas secos.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Puedo cambiar mi producto?</summary>
+      <div class="faq-resp">
+        <p>Sí, dentro de las 48 horas de recibido, sin uso y en su empaque. Los envíos del cambio los cubres tú, y si el nuevo producto cuesta más, pagas la diferencia.</p>
+        <p><b>En Lima:</b> el motorizado te lleva el nuevo y recoge el anterior en la misma visita. <b>En provincias:</b> nos lo envías por Shalom u Olva, lo revisamos y te mandamos el nuevo. Todo se coordina por chat.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Y si mi producto llega con una falla?</summary>
+      <div class="faq-resp">
+        <p>Escríbenos <b>dentro de las 48 horas de recibido</b>, con fotos o un video de la falla. Pasado ese plazo ya no podemos atenderlo como falla. Lo revisamos y te damos una solución según el caso: cambio, otro producto o la devolución de tu dinero.</p>
+        <p>Revisamos cada caso: si el daño es por mal uso, golpes, caídas o roturas, no aplica cambio ni devolución. Tampoco hacemos devoluciones por cambio de opinión.</p>
+      </div>
+    </details>
+    <details>
+      <summary>¿Cuándo tengo envío gratis?</summary>
+      <div class="faq-resp">
+        <p>Solo si en el producto o en tu carrito dice <b>"Envío gratis"</b>.<span class="solo-promos"> Si una promo trae envío gratis, aplica solo a ese combo, no a sus productos por separado.</span></p>
+        <p>Aplica al delivery con motorizado y a Shalom. Si tu zona está lejos, te avisamos si hay alguna diferencia. Por InDrive también puede salir con envío gratis, pero se cotiza por chat, porque el costo varía según tu ubicación.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Se agotó lo que quería, ¿cómo me entero cuando vuelva?</summary>
+      <div class="faq-resp">
+        <p>Entra al producto y toca "Avísame por WhatsApp" o "Avísame por Instagram". Te escribimos apenas llegue.</p>
+        <p>No todos los productos vuelven al mismo tiempo: algunos tardan más que otros. Si quieres saber el tiempo estimado, pregúntanos por chat.</p>
+      </div>
+    </details>
+  </section>
+
+  <footer class="pie">
+    <div class="pie-links">
+      <a id="pieInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+      <a id="pieTikTok" href="#" target="_blank" rel="noopener" hidden>TikTok</a>
+      <!-- Ley 32495: el Libro de Reclamaciones tiene que estar a menos de 2 clics del inicio. Aquí está a 1. -->
+      <a class="libro-link" href="reclamaciones.html">📖 Libro de Reclamaciones</a>
+    </div>
+    <div class="pie-copy">© Timeless Store · Lima, Perú</div>
+  </footer>
+
+</div>
+
+<!-- Ficha de producto -->
+<div class="overlay" id="fichaOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Ficha de producto">
+    <button type="button" class="sheet-close" data-cerrar aria-label="Cerrar">✕</button>
+    <div id="fichaBody"></div>
+  </div>
+</div>
+
+<!-- Arma tu combo (promociones) -->
+<div class="overlay" id="comboOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Arma tu combo">
+    <button type="button" class="sheet-close" data-cerrar aria-label="Cerrar">✕</button>
+    <div id="comboBody"></div>
+  </div>
+</div>
+
+<!-- Carrito y cierre del pedido -->
+<div class="overlay" id="carritoOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Tu pedido">
+    <button type="button" class="sheet-close" data-cerrar aria-label="Cerrar">✕</button>
+    <div id="carritoBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Estadísticas sin cookies (GoatCounter): https://timeless.goatcounter.com -->
+<script data-goatcounter="https://timeless.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+  // El service worker solo existe en http/https (abriendo el archivo con doble clic no hay).
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    var swRefreshing = false;
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (swRefreshing || !hadController) return;
+      swRefreshing = true;
+      window.location.reload();
+    });
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js').then(function (reg) {
+        reg.update();
+        reg.addEventListener('updatefound', function () {
+          var nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', function () {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              nw.postMessage && nw.postMessage('skipWaiting');
+            }
+          });
+        });
+      }).catch(function (err) {
+        console.log('SW no registrado:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
