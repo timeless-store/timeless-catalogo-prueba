@@ -753,7 +753,6 @@ function rangoNormal(st, ahora){
   });
   return {min: min, max: max};
 }
-const fmtRango = (a, b) => a === b ? fmtPrecio(a) : fmtPrecio(a) + '–' + fmtPrecio(b).replace(/^S\//, '');
 function comboHTML(x, ahora){
   const st = estadoCombo(x, ahora);
   const foto = st.fotoAlt || x.pr.foto || fotoPropia((st.casilleros[0] || [])[0]);
@@ -772,7 +771,7 @@ function comboHTML(x, ahora){
       (st.disponible ? '' : '<div class="tags"><span class="tag tag-agotado">Agotado</span></div>') + '</div>' +
     '<div class="combo-cuerpo">' +
       '<div class="combo-nombre">' + esc(x.pr.nombre) + '</div>' +
-      '<div class="precios">' + (rn.max > x.pr.valor ? '<span class="precio-antes">' + fmtRango(rn.min, rn.max) + '</span>' : '') +
+      '<div class="precios">' + (rn.max > x.pr.valor ? '<span class="precio-antes">' + fmtPrecio(rn.max) + '</span>' : '') +
         '<span class="precio-oferta combo-precio">' + fmtPrecio(x.pr.valor) + '</span></div>' +
       (st.gratis ? '<div class="envio-gratis">Con envío gratis</div>' : '') +
       (x.pr.hasta ? '<div class="cuenta">Termina en <b class="mono" data-hasta="' + x.pr.hasta + '">' + fmtCuenta(x.pr.hasta - ahora) + '</b></div>' : '') +
@@ -806,7 +805,7 @@ function renderCombo(){
     (comboDesdeFicha ? '<button type="button" class="sheet-volver" data-volver aria-label="Volver">← ' + esc(ultimaFichaNombre) + '</button>' : '') +
     (st.fotoAlt || x.pr.foto ? '<div class="galeria"><img class="combo-portada" src="' + esc(st.fotoAlt || x.pr.foto) + '" alt="' + esc(x.pr.nombre) + '"></div>' : '') +
     '<div class="sheet-pad">' +
-      '<div class="eyebrow">Promoción</div>' +
+      '<div class="eyebrow">' + esc(cfg.PROMOS_ETIQUETA || 'Promoción') + '</div>' +
       '<h2>' + esc(x.pr.nombre) + '</h2>' +
       '<div class="ficha-precios"><div class="precios"><span class="precio-oferta">' + fmtPrecio(x.pr.valor) + '</span>' +
         (st.completo && st.normal > x.pr.valor ? '<span class="precio-antes">' + fmtPrecio(st.normal) + '</span>' : '') + '</div></div>' +
@@ -832,7 +831,7 @@ function renderCombo(){
         : (st.completo
           ? '<button type="button" class="btn btn-primario" data-combo-agregar="' + x.i + '">Agregar combo al carrito · ' + fmtPrecio(x.pr.valor) + '</button>'
           : '<button type="button" class="btn" disabled>Elige ' + esc(falta.join(' y ')) + '</button>')) +
-      '<p class="nota-chica" style="text-align:center">El precio de la promo se aplica solo en tu carrito.</p>' +
+      '<p class="nota-chica" style="text-align:center">Entra a tu carrito como un solo ítem, con su precio de promo. ¿Quieres algo más? Agrégalo aparte, a su precio normal.</p>' +
     '</div>';
 }
 document.getElementById('comboBody').addEventListener('click', e => {
@@ -896,7 +895,7 @@ function renderHeroPromo(ahora){
       '<span class="hero-promo-sub">Terminaron el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · Atento a las próximas</span></a>';
     return;
   }
-  el.innerHTML = '<a class="hero-promo" href="#promos" data-scroll="promos"><span class="hero-promo-titulo">🔥 Promos disponibles</span>' +
+  el.innerHTML = '<a class="hero-promo" href="#promos" data-scroll="promos"><span class="hero-promo-titulo">' + esc(cfg.PROMOS_HERO || '🔥 Promos disponibles') + '</span>' +
     '<span class="hero-promo-sub">' + (fines.length ? 'Hasta el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · ' : '') + 'Ver promos →</span></a>';
 }
 

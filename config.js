@@ -141,6 +141,8 @@ const CATALOGO_CONFIG = {
   // 31 de octubre de 2026). Al terminar la campaña: dejarlos vacíos ('') para volver
   // al título "Promociones" de siempre.
   PROMOS_TITULO: 'Vuelven las promos Spider 🕷️ · edición Halloween',
+  PROMOS_ETIQUETA: 'Promo Halloween',          // arriba del título al abrir un combo (vacío = "Promoción")
+  PROMOS_HERO: '🎃 Promo Halloween',            // botón grande del inicio (vacío = "🔥 Promos disponibles")
   PROMOS_SUBTITULO: 'Envío gratis en todas · Lima: pide hasta el jueves 29 · Provincia: hasta el martes 27 para que llegue antes de Halloween',
 
   // Solo para la página de PRUEBAS: muestra las promos aunque todavía no llegue su
