@@ -143,6 +143,8 @@ const CATALOGO_CONFIG = {
   PROMOS_TITULO: 'Vuelven las promos Spider 🕷️ · edición Halloween',
   PROMOS_ETIQUETA: 'PROMOS HALLOWEEN',          // arriba del título al abrir un combo (vacío = "Promoción")
   PROMOS_HERO: '🎃 PROMOS HALLOWEEN',            // botón grande del inicio (vacío = "🔥 Promos disponibles")
+  PROMOS_BANNER_PC: 'img/promos/banner-halloween-pc.jpg',    // banner arriba de las promos (vacío = sin banner)
+  PROMOS_BANNER_CEL: '',                                       // versión de celular (vacío = usa la de PC)
   PROMOS_SUBTITULO: 'Envío gratis en todas · Lima: pide hasta el jueves 29 · Provincia: hasta el martes 27 para que llegue antes de Halloween',
 
   // Solo para la página de PRUEBAS: muestra las promos aunque todavía no llegue su

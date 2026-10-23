@@ -876,7 +876,14 @@ function promosSeccionHTML(ahora){
   // Título y subtítulo de la campaña (config.js). Vacíos = los de siempre.
   const titulo = cfg.PROMOS_TITULO || 'Promociones';
   const sub = cfg.PROMOS_SUBTITULO || 'Toca un combo, elige tus productos (con sus fotos y videos) y agrégalo: el precio de la promo se aplica solo en tu carrito.';
-  return '<section class="cat" id="promos"><h2 class="cat-titulo">' + esc(titulo) + '</h2>' +
+  // Banner de la campaña (config.js): se muestra SOLO mientras las promos están visibles,
+  // así desaparece solo con ellas. En celular usa la versión de celular si existe.
+  const banner = cfg.PROMOS_BANNER_PC
+    ? '<picture class="promos-banner">' +
+        (cfg.PROMOS_BANNER_CEL ? '<source media="(max-width:639px)" srcset="' + esc(cfg.PROMOS_BANNER_CEL) + '">' : '') +
+        '<img src="' + esc(cfg.PROMOS_BANNER_PC) + '" alt="' + esc(titulo) + '"></picture>'
+    : '';
+  return '<section class="cat" id="promos">' + banner + '<h2 class="cat-titulo">' + esc(titulo) + '</h2>' +
     '<p class="sub-desc">' + esc(sub) + '</p>' +
     (cfg.PROMOS_TITULO ? '<p class="sub-desc">Toca un combo, elige tus productos (con sus fotos y videos) y agrégalo al carrito.</p>' : '') +
     // Los combos que ya no se pueden armar (algo agotado) van al final.

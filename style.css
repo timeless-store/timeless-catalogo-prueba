@@ -1432,3 +1432,7 @@ html.sin-scroll{overflow:hidden;}
 /* Aviso "¿No te respondemos?" al cerrar el pedido */
 .nota-reintento{margin:12px 0;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;font-size:13px;line-height:1.5;color:var(--muted);}
 .nota-reintento b{color:var(--bone);}
+
+/* Banner de la campaña (arriba de la sección de promos) */
+.promos-banner{display:block;margin:0 0 18px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;}
+.promos-banner img{display:block;width:100%;height:auto;}
