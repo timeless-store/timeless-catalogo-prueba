@@ -753,6 +753,7 @@ function rangoNormal(st, ahora){
   });
   return {min: min, max: max};
 }
+const fmtRango = (a, b) => a === b ? fmtPrecio(a) : fmtPrecio(a) + '–' + fmtPrecio(b).replace('S/', '');
 function comboHTML(x, ahora){
   const st = estadoCombo(x, ahora);
   const foto = st.fotoAlt || x.pr.foto || fotoPropia((st.casilleros[0] || [])[0]);
@@ -771,7 +772,7 @@ function comboHTML(x, ahora){
       (st.disponible ? '' : '<div class="tags"><span class="tag tag-agotado">Agotado</span></div>') + '</div>' +
     '<div class="combo-cuerpo">' +
       '<div class="combo-nombre">' + esc(x.pr.nombre) + '</div>' +
-      '<div class="precios">' + (rn.max > x.pr.valor ? '<span class="precio-antes">' + fmtPrecio(rn.max) + '</span>' : '') +
+      '<div class="precios">' + (rn.max > x.pr.valor ? '<span class="precio-antes">' + fmtRango(rn.min, rn.max) + '</span>' : '') +
         '<span class="precio-oferta combo-precio">' + fmtPrecio(x.pr.valor) + '</span></div>' +
       (st.gratis ? '<div class="envio-gratis">Con envío gratis</div>' : '') +
       (x.pr.hasta ? '<div class="cuenta">Termina en <b class="mono" data-hasta="' + x.pr.hasta + '">' + fmtCuenta(x.pr.hasta - ahora) + '</b></div>' : '') +
@@ -2020,7 +2021,7 @@ function renderCarrito(){
 
   if(pasoCarrito === 'canal'){
     body.innerHTML = '<div class="sheet-pad">' +
-      '<h2>Cerrar pedido</h2>' +
+      '<h2>Hacer pedido</h2>' +
       '<p class="pregunta">¿Coordinamos por WhatsApp o por Instagram?</p>' +
       '<p class="nota-chica">Te respondemos por el chat que elijas para confirmar stock y tu envío. Si justo algo se agotó, te avisamos ahí.</p>' +
       notaReintentoHTML() +
@@ -2145,7 +2146,7 @@ function renderCarrito(){
       : '') +
     '<p class="nota-chica">El costo de envío es aproximado y se confirma por chat. Solo enviamos dentro del Perú. En cualquier opción también puedes pagar todo por adelantado.</p>' +
     (validas.length
-      ? '<button type="button" class="btn btn-primario" data-paso="canal">Cerrar pedido</button>'
+      ? '<button type="button" class="btn btn-primario" data-paso="canal">Hacer pedido</button>'
       : '<button type="button" class="btn" disabled>No hay productos disponibles en tu carrito</button>') +
     '<button type="button" class="btn-link" data-vaciar>Vaciar carrito</button>' +
     '</div>';
