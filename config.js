@@ -143,13 +143,20 @@ const CATALOGO_CONFIG = {
   PROMOS_TITULO: 'Vuelven las promos Spider 🕷️ · edición Halloween',
   PROMOS_ETIQUETA: 'PROMOS HALLOWEEN',          // arriba del título al abrir un combo (vacío = "Promoción")
   PROMOS_HERO: '🎃 PROMOS HALLOWEEN',            // botón grande del inicio (vacío = "🔥 Promos disponibles")
-  PROMOS_BANNER_PC: 'img/promos/banner-halloween-pc.jpg',    // banner en la portada, encima del botón de promos (vacío = sin banner)
-  PROMOS_BANNER_CEL: '',                                       // versión de celular (vacío = usa la de PC)
-  PROMOS_SUBTITULO: 'Envío gratis en todas · Lima: pide hasta el jueves 29 · Provincia: hasta el martes 27 para que llegue antes de Halloween',
+  PROMOS_HERO_SUB: 'Combos Spider desde S/89',    // primera parte de la línea de abajo del botón (vacío = solo la fecha)
+  PROMOS_SUBTITULO: 'Envío gratis en estos combos · Lima: pide hasta el jueves 29 · Provincia: hasta el martes 27 para que llegue antes de Halloween',
 
   // Solo para la página de PRUEBAS: muestra las promos aunque todavía no llegue su
   // fecha de inicio ("Desde" en promos.csv). En el catálogo real va en false.
   VER_PROMOS_ANTES: true,
+
+  // Foto del INICIO por fechas (banners de campaña). Cada una se muestra solo entre sus
+  // fechas (hora de Lima) y fuera de ellas vuelve img/inicio.jpg. Imagen CUADRADA (1080x1080),
+  // con lo importante al centro y un poco arriba. Si el archivo no existe, no pasa nada.
+  // Ejemplo (se agrega cuando el banner esté listo):
+  //   {desde: '2026-10-25 00:00', hasta: '2026-10-31 23:59', foto: 'img/promos/hero-halloween.jpg'},
+  //   {desde: '2026-11-01 00:00', hasta: '2026-11-0X 23:59', foto: 'img/promos/hero-cyberwow.jpg'},
+  HERO_FOTOS: [],
 
   // Líneas dentro de una categoría (columna "Linea" de la hoja). Se muestran como
   // etiqueta en la tarjeta (con esta descripción al pasar el cursor) y en la ficha.

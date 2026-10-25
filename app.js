@@ -896,15 +896,34 @@ function renderHeroPromo(ahora){
       '<span class="hero-promo-sub">Terminaron el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · Atento a las próximas</span></a>';
     return;
   }
-  // Banner de la campaña (config.js) en la portada, encima del botón: tocarlo también
-  // baja a las promos. Solo mientras haya promos vigentes; se va solo con ellas.
-  el.innerHTML = (cfg.PROMOS_BANNER_PC
-      ? '<a class="hero-banner" href="#promos" data-scroll="promos"><picture>' +
-          (cfg.PROMOS_BANNER_CEL ? '<source media="(max-width:639px)" srcset="' + esc(cfg.PROMOS_BANNER_CEL) + '">' : '') +
-          '<img src="' + esc(cfg.PROMOS_BANNER_PC) + '" alt="' + esc(cfg.PROMOS_TITULO || 'Promociones') + '"></picture></a>'
-      : '') +
-    '<a class="hero-promo" href="#promos" data-scroll="promos"><span class="hero-promo-titulo">' + esc(cfg.PROMOS_HERO || '🔥 Promos disponibles') + '</span>' +
-    '<span class="hero-promo-sub">' + (fines.length ? 'Hasta el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · ' : '') + 'Ver promos →</span></a>';
+  el.innerHTML = '<a class="hero-promo" href="#promos" data-scroll="promos"><span class="hero-promo-titulo">' + esc(cfg.PROMOS_HERO || '🔥 Promos disponibles') + '</span>' +
+    '<span class="hero-promo-sub">' + (cfg.PROMOS_HERO_SUB ? esc(cfg.PROMOS_HERO_SUB) + ' · ' : '') + (fines.length ? 'Hasta el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · ' : '') + 'Ver promos →</span></a>';
+}
+
+/* Foto del inicio por fechas (config.js, HERO_FOTOS): cada campaña (Halloween, Cyber Wow…)
+   tiene su banner en la portada SOLO entre sus fechas; fuera de ellas vuelve la foto
+   de siempre (img/inicio.jpg). Si la imagen no carga, se queda la de siempre. */
+const HERO_FOTO_NORMAL = 'img/inicio.jpg';
+let heroFotoActual = HERO_FOTO_NORMAL;
+function fotoDelInicio(ahora){
+  const lista = cfg.HERO_FOTOS || [];
+  for(let i = 0; i < lista.length; i++){
+    const f = lista[i], d = parseFechaLima(f.desde), h = parseFechaLima(f.hasta);
+    if(!f.foto || isNaN(d) || isNaN(h)) continue;
+    // En la página de pruebas (VER_PROMOS_ANTES) se ve la primera aunque no haya llegado la fecha.
+    if(cfg.VER_PROMOS_ANTES ? ahora < h : (d === null || ahora >= d) && (h === null || ahora < h)) return f.foto;
+  }
+  return HERO_FOTO_NORMAL;
+}
+function aplicarFotoInicio(ahora){
+  const quiere = fotoDelInicio(ahora);
+  if(quiere === heroFotoActual) return;
+  const poner = ruta => document.querySelectorAll('.hero-foto, .hero-foto-fondo').forEach(img => { img.src = ruta; });
+  if(quiere === HERO_FOTO_NORMAL){ heroFotoActual = quiere; poner(quiere); return; }
+  const prueba = new Image();
+  prueba.onload = () => { heroFotoActual = quiere; poner(quiere); };
+  prueba.onerror = () => {};   // no existe o no cargó: se queda la foto de siempre
+  prueba.src = quiere;
 }
 
 function renderGrilla(){
@@ -913,6 +932,7 @@ function renderGrilla(){
   const nav = document.getElementById('catsNav');
   const grupos = agrupar();
   renderHeroPromo(ahora);
+  aplicarFotoInicio(ahora);
   document.body.classList.toggle('hay-promos', combosVisibles(ahora).length > 0);
   if(!grupos.length){
     nav.innerHTML = '';
@@ -2385,6 +2405,7 @@ function calcFirma(ahora){
 setInterval(() => {
   renderFranja();
   const ahora = Date.now();
+  aplicarFotoInicio(ahora);
   const firma = calcFirma(ahora);
   if(firma !== firmaOfertas){
     firmaOfertas = firma;
