@@ -50,7 +50,7 @@ const CATALOGO_CONFIG = {
   FRANJA: {
     activa: true,
     texto: 'CYBER WOW · Hasta -20% de descuento en el catálogo · Del 2 al 6 de noviembre',
-    desde: '2026-10-29 00:00',
+    desde: '2026-11-01 00:00',
     hasta: '2026-11-06 23:59',
   },
 
@@ -160,11 +160,11 @@ const CATALOGO_CONFIG = {
   // con lo importante al centro y un poco arriba. Si el archivo no existe, no pasa nada.
   // Ejemplo (se agrega cuando el banner esté listo):
   //   {desde: '2026-10-25 00:00', hasta: '2026-10-31 23:59', foto: 'img/promos/hero-halloween.jpg'},
-  //   {desde: '2026-10-29 00:00', hasta: '2026-11-0X 23:59', foto: 'img/promos/hero-cyberwow-v2.jpg'},
+  //   {desde: '2026-11-01 00:00', hasta: '2026-11-0X 23:59', foto: 'img/promos/hero-cyberwow-v2.jpg'},
   HERO_FOTOS: [
-    {desde: '2026-10-25 00:00', hasta: '2026-10-29 23:59',
+    {desde: '2026-10-25 00:00', hasta: '2026-10-31 23:59',
      foto: 'img/promos/hero-halloween-pc.jpg', fotoCel: 'img/promos/hero-halloween-cel.jpg'},
-    {desde: '2026-10-29 00:00', hasta: '2026-11-06 23:59',
+    {desde: '2026-11-01 00:00', hasta: '2026-11-06 23:59',
      foto: 'img/promos/hero-cyberwow-v2.jpg', fotoCel: 'img/promos/hero-cyberwow-v2.jpg'},
   ],
 
@@ -172,7 +172,7 @@ const CATALOGO_CONFIG = {
   // normal; del "desde" al "hasta" sale el normal tachado + el precio Cyber con la etiqueta
   // CYBER WOW; después vuelve todo solo al precio normal. Los nombres deben ser EXACTOS a
   // productos.csv. El Black Cross Deluxe no lleva descuento (por eso no está).
-  CAMPANA_PRECIOS: {desde: '2026-10-29 00:00', hasta: '2026-11-06 23:59', precios: {
+  CAMPANA_PRECIOS: {desde: '2026-11-02 00:00', hasta: '2026-11-06 23:59', precios: {
     'Cinturón Black Spider': 59, 'Cinturón White Spider': 59,
     'Cinturón Dark Knight': 35, 'Cinturón Chrome Hearts': 35, 'Cinturón Redglow': 30, 'Cinturón Hitboy': 30,
     'Collar Phantom Star': 25, 'Collar Shadow Cross': 25, 'Collar Aracnic Chain': 25,
@@ -181,9 +181,9 @@ const CATALOGO_CONFIG = {
   }},
 
   // Botón azul del inicio mientras dura el Cyber Wow (sale cuando no hay combos de promos).
-  CAMPANA_HERO: {desde: '2026-10-29 00:00', hasta: '2026-11-06 23:59',
-    titulo: '⚡ CYBER WOW', sub: 'Hasta -20% de descuento · Del 2 al 6 de noviembre', boton: 'Ver cinturones →',
-    ir: 'cat-cinturones', eyebrow: 'Cyber Wow 2026'},
+  CAMPANA_HERO: {desde: '2026-11-01 00:00', hasta: '2026-11-06 23:59',
+    titulo: '⚡ CYBER WOW', sub: 'Hasta -20% de descuento · Del 2 al 6 de noviembre', boton: 'Ver catálogo →',
+    ir: 'cat-mas-vendidos', eyebrow: 'Cyber Wow 2026'},
 
   // Lanzamientos programados (NEW DROP). El producto debe estar en productos.csv con
   // Disponible = PRONTO y Visible = SI: antes de "desde" se ve oscuro con las fotos y
