@@ -1478,3 +1478,7 @@ html.sin-scroll{overflow:hidden;}
 .frase-guia{text-align:left;}
 .frase-guia b{display:block;color:var(--bone);margin-bottom:4px;}
 .frase-guia p{margin:6px 0 0;}
+
+/* Cyber Wow: etiqueta y botón azules (el mismo azul de "Arma tu combo") */
+.tag-cyber{background:#2563eb;color:#fff;box-shadow:0 0 12px rgba(37,99,235,.7);}
+.hero-promo.hero-cyber{background:var(--accent);}
