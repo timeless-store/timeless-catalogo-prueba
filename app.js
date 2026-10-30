@@ -1040,7 +1040,10 @@ function aplicarFotoInicio(ahora){
     // Con banner de campaña la portada se acomoda para que se vea completo (ver .hero-campana).
     const hero = document.querySelector('.hero');
     if(hero){
-      hero.classList.toggle('hero-campana', ruta !== HERO_FOTO_NORMAL);
+      hero.classList.toggle('hero-banner', ruta !== HERO_FOTO_NORMAL);
+      // Un banner cuadrado también lleva 'hero-campana' (el estilo de antes): si el navegador todavía
+      // tiene el CSS viejo en caché, el cuadrado se ve bien y el ancho se ve como foto normal.
+      hero.classList.toggle('hero-campana', ruta !== HERO_FOTO_NORMAL && Math.abs((ratio || 1) - 1) < 0.05);
       // El banner puede no ser cuadrado: la portada se acomoda a sus proporciones.
       if(ratio) hero.style.setProperty('--hero-ratio', ratio); else hero.style.removeProperty('--hero-ratio');
     }
