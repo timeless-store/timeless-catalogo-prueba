@@ -182,7 +182,9 @@ function filasAProductos(rows){
       tallas: col(r, 'tallas'),
       nota: col(r, 'nota'),
       // Columnas opcionales: se marcan con SI. Vacío = no.
-      nuevo: esSi(col(r, 'nuevo')),
+      // REGLA: la etiqueta "Nuevo" dura máximo 7 días. En la columna Nuevo se escribe la FECHA de llegada
+      // (ej. 2026-11-03); un SI sin fecha ya no muestra la etiqueta.
+      nuevo: (() => { const f = parseFechaLima(col(r, 'nuevo')); return !!f && !isNaN(f) && Date.now() < f + 7 * 86400000; })(),
       envioGratis: esSi(col(r, 'enviogratis')),
       bestSeller: /^\d+$/.test(bs) ? Number(bs) : (esSi(bs) ? 99 : 0),
       // Visible = NO: el producto no sale en la página (ej. un lanzamiento que
@@ -1032,17 +1034,21 @@ function fotoDelInicio(ahora){
 function aplicarFotoInicio(ahora){
   const quiere = fotoDelInicio(ahora);
   if(quiere === heroFotoActual || quiere === heroCargando) return;
-  const poner = ruta => {
+  const poner = (ruta, ratio) => {
     heroFotoActual = ruta; heroCargando = '';
     document.querySelectorAll('.hero-foto, .hero-foto-fondo').forEach(img => { img.src = ruta; });
     // Con banner de campaña la portada se acomoda para que se vea completo (ver .hero-campana).
     const hero = document.querySelector('.hero');
-    if(hero) hero.classList.toggle('hero-campana', ruta !== HERO_FOTO_NORMAL);
+    if(hero){
+      hero.classList.toggle('hero-campana', ruta !== HERO_FOTO_NORMAL);
+      // El banner puede no ser cuadrado: la portada se acomoda a sus proporciones.
+      if(ratio) hero.style.setProperty('--hero-ratio', ratio); else hero.style.removeProperty('--hero-ratio');
+    }
   };
   if(quiere === HERO_FOTO_NORMAL){ poner(quiere); return; }
   heroCargando = quiere;
   const prueba = new Image();
-  prueba.onload = () => poner(quiere);
+  prueba.onload = () => poner(quiere, prueba.naturalWidth && prueba.naturalHeight ? prueba.naturalWidth / prueba.naturalHeight : 1);
   prueba.onerror = () => { heroCargando = ''; };   // no existe o no cargó: se queda la foto de siempre
   prueba.src = quiere;
 }
