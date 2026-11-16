@@ -108,6 +108,7 @@ function etapaDe(obj, ahora){
   let r = obj;
   (obj.etapas || []).forEach(e => {
     const d = parseFechaLima(e.desde);
+    if(e.soloAcceso && !tieneAcceso(ahora)) return;   // etapa solo para quien ya puso el código
     if(d && !isNaN(d) && ahora >= d){ r = Object.assign({}, r, e); r.desde = obj.desde; }
   });
   return r;
@@ -413,6 +414,11 @@ function ofertaDe(p, ahora){
   return ahora < p.ofertaHasta ? {precio: p.precioOferta, hasta: p.ofertaHasta, campana: false} : null;
 }
 function precioVigente(p, ahora){ const o = ofertaDe(p, ahora); return o ? o.precio : p.precio; }
+// % de descuento (redondeado) SOLO cuando el precio que vale ahora es el de la campaña; si no, 0.
+function pctCampana(p, ahora){
+  const o = ofertaDe(p, ahora);
+  return o && o.campana && p.precio > 0 ? Math.round((p.precio - o.precio) / p.precio * 100) : 0;
+}
 function etiquetaCampana(){ return (cfg.CAMPANA_PRECIOS && cfg.CAMPANA_PRECIOS.etiqueta) || 'CYBER WOW'; }
 
 /* ---------- Acceso anticipado al Black Friday (ACCESO_ANTICIPADO en config.js) ---------- */
@@ -808,7 +814,7 @@ function tarjetaHTML(e, ahora){
   else {
     if(e.newDrop) tags += '<span class="tag tag-drop">NEW DROP</span>';
     else if(e.nuevo) tags += '<span class="tag tag-nuevo">Nuevo</span>';
-    if(oferta) tags += (ofertaDe(p, ahora) || {}).campana ? '<span class="tag tag-cyber">' + esc(etiquetaCampana()) + '</span>' : '<span class="tag tag-oferta">Oferta</span>';
+    if(oferta) tags += (ofertaDe(p, ahora) || {}).campana ? '<span class="tag tag-cyber">' + esc(etiquetaCampana()) + '</span>' + (pctCampana(p, ahora) > 0 ? '<span class="tag-salto"></span><span class="tag tag-pct">-' + pctCampana(p, ahora) + '%</span>' : '') : '<span class="tag tag-oferta">Oferta</span>';
     const tmp = etiquetaTemp(p.nombre, ahora);
     if(tmp) tags += '<span class="tag tag-ultimo">' + esc(tmp) + '</span>';
     if(e.pocos) tags += '<span class="tag tag-pocos">' + (e.quedan ? textoQuedan(e.quedan, false) : 'Últimas unidades') + '</span>';
@@ -858,8 +864,13 @@ function promoVisible(pr, ahora){
   if(isNaN(pr.hasta)) return false;
   return ahora < pr.hasta + PROMO_GRACIA_MS;
 }
+// Con PROMOS_OCULTAR_AGOTADOS (config.js), un combo vigente que no se puede armar (algo agotado)
+// desaparece en vez de mostrar "Agotado: mira los otros combos".
+function comboOculto(x, ahora){
+  return !!cfg.PROMOS_OCULTAR_AGOTADOS && promoActiva(x.pr, ahora) && !estadoCombo(x, ahora).disponible;
+}
 function combosVisibles(ahora){
-  return PROMOS.map((pr, i) => ({pr: pr, i: i})).filter(x => x.pr.tipo === 'combo' && promoVisible(x.pr, ahora));
+  return PROMOS.map((pr, i) => ({pr: pr, i: i})).filter(x => x.pr.tipo === 'combo' && promoVisible(x.pr, ahora) && !comboOculto(x, ahora));
 }
 // Productos que entran en un casillero, en el orden en que están escritos.
 function opcionesCasillero(token){
@@ -974,8 +985,9 @@ function renderCombo(){
   const ahora = Date.now();
   const body = document.getElementById('comboBody');
   const x = combosActivos(ahora).find(c => c.i === comboAbierto);
-  if(!x){
-    body.innerHTML = '<div class="sheet-pad"><h2>Promoción</h2><div class="estado">Esta promoción ya terminó.</div>' +
+  if(!x || comboOculto(x, ahora)){
+    // Combo que terminó, o que se agotó y está oculto (abierto por un link guardado).
+    body.innerHTML = '<div class="sheet-pad"><h2>Promoción</h2><div class="estado">' + (x ? 'Este combo ya no está disponible.' : 'Esta promoción ya terminó.') + '</div>' +
       '<button type="button" class="btn" data-cerrar>Ver el catálogo</button></div>';
     return;
   }
@@ -1136,6 +1148,27 @@ function renderBotonCodigo(ahora){
     : '';
 }
 let codigoAbierto = false;
+const TEXTO_PEDIR_CODIGO = '¡Hola Timeless! Quiero el código de acceso anticipado al Black Friday 🖤';
+// Confeti corto (~1.5 s) hecho a mano: pocas piezas, colores de la marca, sin bloquear clics.
+// Con "reducir movimiento" activado en el celular no se muestra.
+function confeti(){
+  try {
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  } catch(e) {}
+  const cont = document.createElement('div');
+  cont.className = 'confeti';
+  cont.setAttribute('aria-hidden', 'true');
+  const colores = ['#ffffff', '#2563eb', '#ef4444', '#8fa9ff'];
+  let h = '';
+  for(let i = 0; i < 36; i++){
+    h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + colores[i % colores.length] +
+         ';--dx:' + Math.round((Math.random() - 0.5) * 160) + 'px;--giro:' + Math.round(Math.random() * 720 - 360) + 'deg' +
+         ';animation-delay:' + (Math.random() * 0.25).toFixed(2) + 's"></i>';
+  }
+  cont.innerHTML = h;
+  document.body.appendChild(cont);
+  setTimeout(() => { if(cont.parentNode) cont.parentNode.removeChild(cont); }, 1800);
+}
 function abrirCodigo(){
   const ov = document.getElementById('codigoOverlay');
   if(!ov) return;
@@ -1144,7 +1177,12 @@ function abrirCodigo(){
     '<p class="codigo-txt">Escribe tu código para entrar al Black Friday antes que todos.</p>' +
     '<form id="codigoForm" autocomplete="off"><input type="text" id="codigoInput" class="codigo-input" placeholder="Tu código" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Código de acceso anticipado">' +
     '<button type="submit" class="btn btn-primario" style="width:100%;margin-top:10px">Entrar</button></form>' +
-    '<div id="codigoMsg" class="codigo-msg" role="status" aria-live="polite"></div></div>';
+    '<div id="codigoMsg" class="codigo-msg" role="status" aria-live="polite"></div>' +
+    // ¿No tienes código? Se pide por WhatsApp o Instagram (como en el carrito).
+    '<p class="codigo-pide">¿No tienes código? <button type="button" class="codigo-pide-btn" data-codigo-pide aria-expanded="false">Pregúntanos cómo</button></p>' +
+    '<div class="codigo-canales" id="codigoCanales" hidden>' +
+      '<a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(urlWhatsApp(TEXTO_PEDIR_CODIGO)) + '">WhatsApp</a>' +
+      '<button type="button" class="btn btn-ig" data-codigo-ig>Instagram</button></div></div>';
   codigoAbierto = true;
   ov.hidden = false;
   bloquearFondo(true);
@@ -1169,7 +1207,7 @@ function probarCodigo(txt){
   if(ini !== null && ahora < ini){
     // Código bueno pero todavía no es la hora: no se guarda ni se activa nada.
     msg.classList.add('codigo-ok');
-    msg.textContent = 'Tu acceso anticipado empieza el jueves 26 a las 12:00 a.m. 🔒';
+    msg.textContent = 'El acceso anticipado todavía no está activo. Empieza el jueves 26 a las 12:00 a.m. Guarda tu código 🔒';
     return;
   }
   vipGuardado = true;
@@ -1179,6 +1217,7 @@ function probarCodigo(txt){
     '<button type="button" class="btn btn-primario" style="width:100%;margin-top:14px" data-cerrar>Ver el catálogo</button></div>';
   firmaOfertas = calcFirma(ahora);
   renderTodo();
+  confeti();
 }
 
 /* Foto del inicio por fechas (config.js, HERO_FOTOS): cada campaña (Halloween, Cyber Wow…)
@@ -2086,7 +2125,8 @@ function renderFicha(indice){
       (p.disponible && (ofertaDe(p, ahora) || {}).campana
         ? '<div><span class="tag tag-cyber">' + esc(etiquetaCampana()) + '</span>' + (p.disponible && etiquetaTemp(p.nombre, ahora) ? ' <span class="tag tag-ultimo">' + esc(etiquetaTemp(p.nombre, ahora)) + '</span>' : '') + '</div>'
         : '') +
-      '<div class="ficha-precios">' + preciosHTML(p, ahora) + '</div>' +
+      '<div class="ficha-precios">' + preciosHTML(p, ahora) +
+        (p.disponible && pctCampana(p, ahora) > 0 ? '<span class="tag tag-pct tag-pct-ficha">-' + pctCampana(p, ahora) + '%</span>' : '') + '</div>' +
       // Restock en camino: botón amarillo que baja al "Avísame".
       (p.restock ? '<button type="button" class="btn btn-restock" data-ir-aviso>Restock en camino · Te avisamos apenas llegue</button>' : '') +
       (p.disponible && p.pocos ? '<div class="pocos">' + (p.quedan ? textoQuedan(p.quedan, true) : 'Últimas unidades') + '</div>' : '') +
@@ -2781,6 +2821,18 @@ window.addEventListener('hashchange', () => {
 });
 document.addEventListener('click', e => {
   if(e.target.closest('[data-codigo-abrir]')){ abrirCodigo(); return; }
+  const pide = e.target.closest('[data-codigo-pide]');
+  if(pide){
+    const c = document.getElementById('codigoCanales');
+    if(c){ c.hidden = !c.hidden; pide.setAttribute('aria-expanded', String(!c.hidden)); }
+    return;
+  }
+  if(e.target.closest('[data-codigo-ig]')){
+    // Se copia el mensaje y se abre el chat en el mismo toque (Instagram no deja mandarlo escrito).
+    copiar(TEXTO_PEDIR_CODIGO).then(ok => toast(ok ? 'Mensaje copiado: pégalo en el chat' : 'Pídenos el código en el chat'));
+    window.open(urlInstagramChat(), '_blank', 'noopener');
+    return;
+  }
   // Cierra con la ✕, con un botón "seguir viendo" o tocando el fondo oscuro.
   if(e.target.closest('[data-cerrar]') || e.target.classList.contains('overlay')) cerrarHoja();
 });

@@ -55,6 +55,9 @@ const CATALOGO_CONFIG = {
     // Etapas: desde cada fecha cambia el texto (y el fin). urgente = franja roja.
     etapas: [
       {desde: '2026-11-26 00:00',
+       texto: 'BLACK FRIDAY · Empieza mañana viernes 27 a las 12:00 a.m. · Hasta -30% de descuento'},
+      // soloAcceso: esta etapa la ve únicamente quien ya puso el código (los demás ven la de arriba).
+      {desde: '2026-11-26 00:00', soloAcceso: true,
        texto: 'ACCESO ANTICIPADO ACTIVO · Black Friday para todos desde mañana viernes 27'},
       {desde: '2026-11-27 00:00',
        texto: 'BLACK FRIDAY · Hasta -30% de descuento en el catálogo · Hasta el miércoles 02/12'},
@@ -165,6 +168,10 @@ const CATALOGO_CONFIG = {
   // 'primero' (arriba de Más vendidos) o 'despues-de-mas-vendidos'.
   PROMOS_POSICION: 'primero',
 
+  // true = un combo que no se puede armar (algo agotado) desaparece de la sección, en vez de
+  // mostrarse como "Agotado: mira los otros combos". Si no queda ninguno, la sección se va.
+  PROMOS_OCULTAR_AGOTADOS: true,
+
   // Minutos que la cuenta de una promo se queda en 00:00:00 ("Promo terminada")
   // antes de que desaparezca todo lo de promos.
   PROMO_GRACIA_MIN: 5,
@@ -242,7 +249,7 @@ const CATALOGO_CONFIG = {
   // Botoncito extra al inicio de los avisos del inicio (antes de "Puntos de recojo sin costo").
   // Sale solo hasta "hasta" y mientras el producto esté disponible.
   // Ejemplo: {producto: 'Nombre exacto', texto: 'Volvieron los anillos Duki 🖤', hasta: 'AAAA-MM-DD HH:MM'}
-  AVISO_CHIP: null,
+  AVISO_CHIP: {producto: 'Anillos Demon & Angel Wings Duki', texto: 'Volvieron los anillos Duki 🖤', hasta: '2026-12-02 23:59'},
 
   // Líneas dentro de una categoría (columna "Linea" de la hoja). Se muestran como
   // etiqueta en la tarjeta (con esta descripción al pasar el cursor) y en la ficha.
@@ -253,7 +260,7 @@ const CATALOGO_CONFIG = {
 
   // Orden en que aparecen las categorías. Si en la hoja aparece una categoría
   // que no está en esta lista, igual se muestra, al final.
-  CATEGORIAS: ['Cinturones', 'Collares', 'Anillos', 'Pant chains', 'Lentes'],
+  CATEGORIAS: ['Collares', 'Cinturones', 'Pant chains', 'Anillos', 'Lentes'],
 
   // Frase con la que cierra cada categoría y cada ficha (la misma del Canva).
   FRASE_TALLA: '¿No sabes si te queda? Escríbenos por DM y te ayudamos a elegir tu talla',

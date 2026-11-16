@@ -1490,6 +1490,10 @@ html.sin-scroll{overflow:hidden;}
 /* Cyber Wow: etiqueta y botón azules (el mismo azul de "Arma tu combo") */
 .tag-cyber{background:#2563eb;color:#fff;box-shadow:0 0 12px rgba(37,99,235,.7);}
 .hero-promo.hero-cyber{background:var(--accent);}
+/* % de descuento de la campaña: va debajo de la etiqueta "BLACK FRIDAY" (tag-salto parte la línea) */
+.tag-salto{flex-basis:100%;height:0;}
+.tag-pct{background:#2563eb;color:#fff;box-shadow:0 0 12px rgba(37,99,235,.7);}
+.ficha-precios:has(.tag-pct){display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 /* Último día de la campaña: botón y franja en rojo */
 .hero-promo.hero-cyber.hero-urgente{background:#dc2626;box-shadow:0 0 22px rgba(220,38,38,.55);}
 .franja.franja-urgente{background:#dc2626;}
@@ -1511,6 +1515,20 @@ html.sin-scroll{overflow:hidden;}
 }
 .codigo-msg{margin-top:12px;font-size:14px;font-weight:600;line-height:1.4;}
 .codigo-msg:empty{display:none;}
+.codigo-pide{margin:16px 0 0;font-size:14px;color:var(--muted, #aaa);text-align:center;}
+.codigo-pide-btn{background:none;border:0;padding:0;font:inherit;font-weight:800;color:var(--accent-txt);text-decoration:underline;cursor:pointer;}
+.codigo-canales{display:flex;gap:8px;margin-top:10px;}
+.codigo-canales[hidden]{display:none;}
+.codigo-canales .btn{flex:1;text-align:center;}
+/* Confeti corto al activar el acceso: no tapa ni bloquea nada */
+.confeti{position:fixed;inset:0;z-index:200;pointer-events:none;overflow:hidden;}
+.confeti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;opacity:0;animation:confeti-cae 1.5s ease-in forwards;}
+@keyframes confeti-cae{
+  0%{opacity:1;transform:translate3d(0,0,0) rotate(0);}
+  85%{opacity:1;}
+  100%{opacity:0;transform:translate3d(var(--dx),105vh,0) rotate(var(--giro));}
+}
+@media (prefers-reduced-motion: reduce){ .confeti{display:none;} }
 .codigo-ok{color:#4ade80;}
 .codigo-mal{color:#f87171;}
 
