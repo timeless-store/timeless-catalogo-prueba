@@ -437,6 +437,13 @@ function tieneAcceso(ahora){
   const ini = fechaAcceso('activaDesde'), fin = fechaAcceso('hasta');
   return vipGuardado && ini !== null && ahora >= ini && (fin === null || ahora < fin);
 }
+// ¿Esta persona ya ve los precios del Black Friday? (desde el inicio público o con su acceso anticipado)
+// Mientras tanto el botón azul de la portada "palpita" (clase hero-pulso).
+function bfActivo(ahora){
+  const c = cfg.CAMPANA_PRECIOS || {}, d = parseFechaLima(c.desde), h = parseFechaLima(c.hasta);
+  if(d === null || h === null || isNaN(d) || isNaN(h) || ahora > h) return false;
+  return ahora >= d || tieneAcceso(ahora);
+}
 // ¿Se ve el botón "Ingresar código" en la portada?
 function botonCodigoVisible(ahora){
   const d = fechaAcceso('botonDesde'), h = fechaAcceso('hasta');
@@ -1122,7 +1129,7 @@ function renderHeroPromo(ahora){
   const combos = combosVisibles(ahora);
   if(!combos.length){
     el.innerHTML = enCampana
-      ? '<a class="hero-promo hero-cyber' + (ch.urgente ? ' hero-urgente' : '') + '" href="#catalogo" data-scroll="' + esc(ch.ir || 'cat-mas-vendidos') + '"><span class="hero-promo-titulo">' + esc(ch.titulo) + '</span>' +
+      ? '<a class="hero-promo hero-cyber' + (ch.urgente ? ' hero-urgente' : '') + (bfActivo(ahora) ? ' hero-pulso' : '') + '" href="#catalogo" data-scroll="' + esc(ch.ir || 'cat-mas-vendidos') + '"><span class="hero-promo-titulo">' + esc(ch.titulo) + '</span>' +
         '<span class="hero-promo-sub">' + esc(ch.sub) + ' · ' + esc(ch.boton) + '</span></a>'
       : '';
     return;
