@@ -1155,6 +1155,8 @@ details.datos-form .opc{font-weight:500;color:var(--muted);}
 .cant-ficha button[disabled]{background:var(--chip);color:var(--muted);cursor:not-allowed;}
 .cant-ficha span{font-size:14px;}
 .btn-restock{background:var(--warn);border-color:var(--warn);color:#111;margin-top:10px;}
+.cintura-clave{display:block;font-size:16px;font-weight:800;margin-bottom:2px;}
+.talla-linea{display:block;}
 .nota-316{display:block;margin-top:4px;font-size:12px;color:var(--muted);}
 .frase-talla .dm-link{
   background:none;border:0;padding:0;cursor:pointer;font:inherit;
@@ -1491,6 +1493,26 @@ html.sin-scroll{overflow:hidden;}
 /* Último día de la campaña: botón y franja en rojo */
 .hero-promo.hero-cyber.hero-urgente{background:#dc2626;box-shadow:0 0 22px rgba(220,38,38,.55);}
 .franja.franja-urgente{background:#dc2626;}
+
+/* Black Friday: botón "Ingresar código" del inicio y su ventana */
+.hero-codigo{
+  display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:12px;
+  padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:#0b0b0b;color:#fff;
+  font:inherit;cursor:pointer;
+}
+.hero-codigo-titulo{font-size:16px;font-weight:800;}
+.hero-codigo-sub{font-size:12px;font-weight:600;opacity:.75;}
+.hero-codigo:active{transform:scale(.97);}
+.sheet-codigo{max-width:420px;}
+.codigo-txt{margin:0 0 12px;color:var(--muted, #aaa);font-size:14px;}
+.codigo-input{
+  width:100%;box-sizing:border-box;padding:14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--chip);color:var(--bone);font-size:16px;letter-spacing:.08em;text-transform:uppercase;
+}
+.codigo-msg{margin-top:12px;font-size:14px;font-weight:600;line-height:1.4;}
+.codigo-msg:empty{display:none;}
+.codigo-ok{color:#4ade80;}
+.codigo-mal{color:#f87171;}
 
 /* ---------- Barra fija del carrito (solo celular) ---------- */
 /* Aparece abajo cuando el carrito tiene productos: "Ver carrito · 2 productos · S/124". */

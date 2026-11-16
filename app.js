@@ -201,10 +201,12 @@ function filasAProductos(rows){
       nombre: nombre,
       categoria: col(r, 'categoria') || 'Otros',
       precio: parseMoney(col(r, 'precio')),
-      precioOferta: camp ? camp.precio : parseMoney(col(r, 'preciooferta')),
-      ofertaHasta: camp ? camp.hasta : parseFechaLima(col(r, 'ofertahasta')),
-      ofertaDesde: camp ? camp.desde : 0,
-      cyber: !!camp,
+      // Oferta normal del CSV. El precio de la campaña (Black Friday) va aparte en "camp" y
+      // solo manda dentro de sus fechas (ver ofertaDe): antes y después vale esta oferta.
+      precioOferta: parseMoney(col(r, 'preciooferta')),
+      ofertaHasta: parseFechaLima(col(r, 'ofertahasta')),
+      ofertaDesde: 0,
+      camp: camp,
       // Solo se marca agotado con un NO explícito. Una celda vacía cuenta como disponible.
       disponible: !pronto && !restock && ['no', 'agotado', '0', 'false', 'falso'].indexOf(disp) === -1,
       proximamente: pronto,
@@ -386,17 +388,54 @@ function rangoEstado(e){ return e.lanzamiento ? -1 : e.disponible ? 0 : (e.proxi
 // - Con PrecioOferta y sin fecha: oferta sin fecha de fin (sin cuenta regresiva).
 // - Con fecha mal escrita: NO se aplica. Es preferible cobrar el precio normal
 //   a regalar un descuento por un error de tipeo.
-function ofertaActiva(p, ahora){
-  if(!(p.precioOferta > 0 && p.precioOferta < p.precio)) return false;
-  if(p.ofertaDesde && ahora < p.ofertaDesde) return false;   // campaña que todavía no empieza
+function ofertaActiva(p, ahora){ return !!ofertaDe(p, ahora); }
+// La oferta que vale AHORA para un producto: {precio, hasta, campana} o null.
+// 1) Si está en CAMPANA_PRECIOS (Black Friday) y estamos dentro de las fechas de la campaña, manda ese
+//    precio. Con el código de acceso anticipado, la campaña empieza antes (ACCESO_ANTICIPADO.activaDesde).
+// 2) Si no, vale la oferta normal de productos.csv (PrecioOferta / OfertaHasta).
+function ofertaDe(p, ahora){
+  const c = p.camp;
+  if(c && c.precio > 0 && c.precio < p.precio){
+    let ini = c.desde;
+    if(tieneAcceso(ahora)){
+      const av = parseFechaLima(cfg.ACCESO_ANTICIPADO.activaDesde);
+      if(av && !isNaN(av) && av < ini) ini = av;
+    }
+    if(ahora >= ini && ahora < c.hasta) return {precio: c.precio, hasta: c.hasta, campana: true};
+  }
+  if(!(p.precioOferta > 0 && p.precioOferta < p.precio)) return null;
+  if(p.ofertaDesde && ahora < p.ofertaDesde) return null;
   // Un agotado no muestra una oferta sin fecha de fin: así nadie espera que
   // vuelva a ese precio. Con fecha (máx. 2 días después de agotarse), sí.
-  if(!p.disponible && p.ofertaHasta === null) return false;
-  if(p.ofertaHasta === null) return true;
-  if(isNaN(p.ofertaHasta)) return false;
-  return ahora < p.ofertaHasta;
+  if(!p.disponible && p.ofertaHasta === null) return null;
+  if(p.ofertaHasta === null) return {precio: p.precioOferta, hasta: null, campana: false};
+  if(isNaN(p.ofertaHasta)) return null;
+  return ahora < p.ofertaHasta ? {precio: p.precioOferta, hasta: p.ofertaHasta, campana: false} : null;
 }
-function precioVigente(p, ahora){ return ofertaActiva(p, ahora) ? p.precioOferta : p.precio; }
+function precioVigente(p, ahora){ const o = ofertaDe(p, ahora); return o ? o.precio : p.precio; }
+function etiquetaCampana(){ return (cfg.CAMPANA_PRECIOS && cfg.CAMPANA_PRECIOS.etiqueta) || 'CYBER WOW'; }
+
+/* ---------- Acceso anticipado al Black Friday (ACCESO_ANTICIPADO en config.js) ---------- */
+const VIP_KEY = 'timeless_prueba_vip';
+let vipGuardado = false;
+try { vipGuardado = localStorage.getItem(VIP_KEY) === '1'; } catch(e) {}
+function fechaAcceso(clave){ const a = cfg.ACCESO_ANTICIPADO; const t = a && parseFechaLima(a[clave]); return t && !isNaN(t) ? t : null; }
+// El código se compara sin mayúsculas ni espacios.
+function codigoValido(txt){
+  const a = cfg.ACCESO_ANTICIPADO;
+  const limpio = s => String(s == null ? '' : s).replace(/\s+/g, '').toLowerCase();
+  return !!(a && a.codigo) && limpio(txt) === limpio(a.codigo);
+}
+// ¿Esta persona tiene el acceso anticipado activo ahora mismo? (código guardado + ya llegó la hora)
+function tieneAcceso(ahora){
+  const ini = fechaAcceso('activaDesde'), fin = fechaAcceso('hasta');
+  return vipGuardado && ini !== null && ahora >= ini && (fin === null || ahora < fin);
+}
+// ¿Se ve el botón "Ingresar código" en la portada?
+function botonCodigoVisible(ahora){
+  const d = fechaAcceso('botonDesde'), h = fechaAcceso('hasta');
+  return d !== null && h !== null && ahora >= d && ahora < h && !tieneAcceso(ahora);
+}
 
 // Foto para miniaturas: la primera que no sea video (propia, o de su grupo).
 function fotoEntrada(e){ return e.fotos.find(f => !esVideo(f)) || FOTO_VACIA; }
@@ -414,16 +453,18 @@ function fmtCuenta(ms){
 }
 
 function preciosHTML(p, ahora){
-  if(ofertaActiva(p, ahora)){
+  const o = ofertaDe(p, ahora);
+  if(o){
     return '<div class="precios"><span class="precio-antes">' + fmtPrecio(p.precio) + '</span>' +
-           '<span class="precio-oferta">' + fmtPrecio(p.precioOferta) + '</span></div>';
+           '<span class="precio-oferta">' + fmtPrecio(o.precio) + '</span></div>';
   }
   return '<div class="precios"><span class="precio">' + fmtPrecio(p.precio) + '</span></div>';
 }
 function cuentaHTML(p, ahora, clase){
-  if(!ofertaActiva(p, ahora) || p.ofertaHasta === null) return '';
-  return '<div class="cuenta ' + (clase || '') + '">Oferta termina en <b class="mono" data-hasta="' + p.ofertaHasta + '">' +
-         fmtCuenta(p.ofertaHasta - ahora) + '</b></div>';
+  const o = ofertaDe(p, ahora);
+  if(!o || o.hasta === null) return '';
+  return '<div class="cuenta ' + (clase || '') + '">Oferta termina en <b class="mono" data-hasta="' + o.hasta + '">' +
+         fmtCuenta(o.hasta - ahora) + '</b></div>';
 }
 
 /* ---------- Promociones automáticas ----------
@@ -767,7 +808,7 @@ function tarjetaHTML(e, ahora){
   else {
     if(e.newDrop) tags += '<span class="tag tag-drop">NEW DROP</span>';
     else if(e.nuevo) tags += '<span class="tag tag-nuevo">Nuevo</span>';
-    if(oferta) tags += p.cyber ? '<span class="tag tag-cyber">CYBER WOW</span>' : '<span class="tag tag-oferta">Oferta</span>';
+    if(oferta) tags += (ofertaDe(p, ahora) || {}).campana ? '<span class="tag tag-cyber">' + esc(etiquetaCampana()) + '</span>' : '<span class="tag tag-oferta">Oferta</span>';
     const tmp = etiquetaTemp(p.nombre, ahora);
     if(tmp) tags += '<span class="tag tag-ultimo">' + esc(tmp) + '</span>';
     if(e.pocos) tags += '<span class="tag tag-pocos">' + (e.quedan ? textoQuedan(e.quedan, false) : 'Últimas unidades') + '</span>';
@@ -873,7 +914,9 @@ function estadoCombo(x, ahora){
           disponible: casilleros.every(ops => ops.some(p => p.disponible)),
           normal: elegidos.reduce((a, p) => a + p.precio, 0),
           // Envío gratis si alguna opción lo trae (el cinturón premium, en estos combos).
-          gratis: casilleros.some(ops => ops.length && ops.every(p => p.envioGratis))};
+          gratis: casilleros.some(ops => ops.length && ops.every(p => p.envioGratis)),
+          // Menos unidades que quedan entre los productos fijos del combo (0 = sin dato).
+          quedan: Math.min.apply(null, casilleros.filter(ops => ops.length === 1 && ops[0].disponible && ops[0].quedan).map(ops => ops[0].quedan).concat([99])) % 99};
 }
 // Tarjeta del combo en la página: la foto del combo (la del Canva), precio y "Arma tu combo".
 // Lo que costarían las opciones sin promo, de la más barata a la más cara (para
@@ -905,7 +948,7 @@ function comboHTML(x, ahora){
   }
   return '<a class="combo' + (st.disponible ? '' : ' combo-agotado') + '" href="#/combo/' + x.i + '">' +
     '<div class="combo-foto"><img loading="lazy" src="' + esc(foto) + '" alt="' + esc(x.pr.nombre) + '">' +
-      (st.disponible ? '' : '<div class="tags"><span class="tag tag-agotado">Agotado</span></div>') + '</div>' +
+      (st.disponible ? (st.quedan ? '<div class="tags"><span class="tag tag-pocos">' + textoQuedan(st.quedan, false) + '</span></div>' : '') : '<div class="tags"><span class="tag tag-agotado">Agotado</span></div>') + '</div>' +
     '<div class="combo-cuerpo">' +
       '<div class="combo-nombre">' + esc(x.pr.nombre) + '</div>' +
       '<div class="precios">' + (rn.max > x.pr.valor ? '<span class="precio-antes">' + fmtRango(rn.min, rn.max) + '</span>' : '') +
@@ -946,6 +989,7 @@ function renderCombo(){
       '<h2>' + esc(x.pr.nombre) + '</h2>' +
       '<div class="ficha-precios"><div class="precios"><span class="precio-oferta">' + fmtPrecio(x.pr.valor) + '</span>' +
         (st.completo && st.normal > x.pr.valor ? '<span class="precio-antes">' + fmtPrecio(st.normal) + '</span>' : '') + '</div></div>' +
+      (st.disponible && st.quedan ? '<div class="pocos">' + textoQuedan(st.quedan, true) + '</div>' : '') +
       (st.gratis ? '<div class="envio-gratis" style="margin-top:8px">🚚 Con envío gratis</div>' : '') +
       (x.pr.hasta ? '<div class="cuenta ficha-cuenta">Termina en <b class="mono" data-hasta="' + x.pr.hasta + '">' + fmtCuenta(x.pr.hasta - ahora) + '</b></div>' : '') +
       st.casilleros.map((ops, s) => {
@@ -1082,6 +1126,61 @@ function renderHeroPromo(ahora){
     '<span class="hero-promo-sub">' + (cfg.PROMOS_HERO_SUB ? esc(cfg.PROMOS_HERO_SUB) + ' · ' : '') + (fines.length ? 'Hasta el ' + fechaCortaLima(Math.min.apply(null, fines)) + ' · ' : '') + 'Ver promos →</span></a>';
 }
 
+/* Botón "Ingresar código" del inicio (acceso anticipado al Black Friday) y su ventana. */
+function renderBotonCodigo(ahora){
+  const el = document.getElementById('heroCodigo');
+  if(!el) return;
+  el.innerHTML = botonCodigoVisible(ahora)
+    ? '<button type="button" class="hero-codigo" data-codigo-abrir><span class="hero-codigo-titulo">🔒 Ingresar código</span>' +
+      '<span class="hero-codigo-sub">Acceso anticipado al Black Friday</span></button>'
+    : '';
+}
+let codigoAbierto = false;
+function abrirCodigo(){
+  const ov = document.getElementById('codigoOverlay');
+  if(!ov) return;
+  document.getElementById('codigoBody').innerHTML =
+    '<div class="sheet-pad"><h2>Acceso anticipado</h2>' +
+    '<p class="codigo-txt">Escribe tu código para entrar al Black Friday antes que todos.</p>' +
+    '<form id="codigoForm" autocomplete="off"><input type="text" id="codigoInput" class="codigo-input" placeholder="Tu código" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Código de acceso anticipado">' +
+    '<button type="submit" class="btn btn-primario" style="width:100%;margin-top:10px">Entrar</button></form>' +
+    '<div id="codigoMsg" class="codigo-msg" role="status" aria-live="polite"></div></div>';
+  codigoAbierto = true;
+  ov.hidden = false;
+  bloquearFondo(true);
+  setTimeout(() => { const i = document.getElementById('codigoInput'); if(i) i.focus(); }, 50);
+}
+function cerrarCodigo(){
+  const ov = document.getElementById('codigoOverlay');
+  if(ov) ov.hidden = true;
+  codigoAbierto = false;
+  if(!document.querySelector('.overlay:not([hidden])')) bloquearFondo(false);
+}
+function probarCodigo(txt){
+  const msg = document.getElementById('codigoMsg');
+  if(!msg) return;
+  const ahora = Date.now(), ini = fechaAcceso('activaDesde');
+  msg.classList.remove('codigo-ok', 'codigo-mal');
+  if(!codigoValido(txt)){
+    msg.classList.add('codigo-mal');
+    msg.textContent = 'Código no válido. Escríbenos por DM para pedir tu acceso 🖤';
+    return;
+  }
+  if(ini !== null && ahora < ini){
+    // Código bueno pero todavía no es la hora: no se guarda ni se activa nada.
+    msg.classList.add('codigo-ok');
+    msg.textContent = 'Tu acceso anticipado empieza el jueves 26 a las 12:00 a.m. 🔒';
+    return;
+  }
+  vipGuardado = true;
+  try { localStorage.setItem(VIP_KEY, '1'); } catch(e) {}
+  document.getElementById('codigoBody').innerHTML =
+    '<div class="sheet-pad"><h2>¡Listo!</h2><div class="codigo-msg codigo-ok" role="status">¡Listo! Ya tienes acceso anticipado al Black Friday 🖤</div>' +
+    '<button type="button" class="btn btn-primario" style="width:100%;margin-top:14px" data-cerrar>Ver el catálogo</button></div>';
+  firmaOfertas = calcFirma(ahora);
+  renderTodo();
+}
+
 /* Foto del inicio por fechas (config.js, HERO_FOTOS): cada campaña (Halloween, Cyber Wow…)
    tiene su banner en la portada SOLO entre sus fechas; fuera de ellas vuelve la foto
    de siempre (img/inicio.jpg). Si la imagen no carga, se queda la de siempre. */
@@ -1136,6 +1235,7 @@ function renderGrilla(){
   const grupos = agrupar();
   renderHeroPromo(ahora);
   renderHeroDrop(ahora);
+  renderBotonCodigo(ahora);
   renderChipAviso();
   aplicarFotoInicio(ahora);
   document.body.classList.toggle('hay-promos', combosVisibles(ahora).length > 0);
@@ -1851,7 +1951,15 @@ function calcularPedido(ahora){
 function textoPedido(){
   const ped = calcularPedido(Date.now());
   const y = cfg.YAPE || {};
-  let t = '¡Hola Timeless! Quiero hacer este pedido:\n\n' +
+  // Black Friday: el pedido lo dice en la primera línea (con acceso anticipado antes del viernes 27).
+  const ahoraP = Date.now(), c = cfg.CAMPANA_PRECIOS || {};
+  const ini = parseFechaLima(c.desde), fin = parseFechaLima(c.hasta);
+  let tituloBF = '';
+  if(ini && fin && !isNaN(ini) && !isNaN(fin) && /black/i.test(c.etiqueta || '')){
+    if(ahoraP >= ini && ahoraP < fin) tituloBF = 'PEDIDO BLACK FRIDAY\n';
+    else if(ahoraP < ini && tieneAcceso(ahoraP)) tituloBF = 'PEDIDO ACCESO ANTICIPADO BLACK FRIDAY\n';
+  }
+  let t = tituloBF + '¡Hola Timeless! Quiero hacer este pedido:\n\n' +
     ped.lineas.map(l => l.combo
       // Combo: nombre de la promo, lo que eligió y el precio de la promo.
       ? '• ' + l.cant + ' × ' + l.combo.nombre + ' (' + l.ps.map(p => p.nombre).join(' + ') + ') — ' + fmtPrecio(l.unit) +
@@ -1929,10 +2037,9 @@ function indiceGaleria(){
 function tallasCinturonHTML(t, nombre){
   const m = String(t || '').match(/^\s*(\d+)\s*[–-]\s*(\d+)\s*(?:aprox\.?)?\s*(?:\(\s*(\d+)\s*[–-]\s*(\d+)\s*cm[^)]*\))?/i);
   if(!m) return esc(t);
-  return '<b>Sirve para las tallas ' + m[1] + ' a ' + m[2] + '</b> <span class="aprox">(aprox.)</span>' +
-    '<span class="nota-316">' + (m[3]
-      ? 'Entra en cinturas de ' + m[3] + ' a ' + m[4] + ' cm. Es UN solo cinturón que agarra esas tallas: no tienes que elegir talla.'
-      : 'Es UN solo cinturón para todas esas tallas: no tienes que elegir talla.') + '</span>';
+  return (m[3] ? '<b class="cintura-clave">Entra en cinturas de ' + m[3] + ' a ' + m[4] + ' cm</b>' : '') +
+    '<span class="talla-linea">Talla de pantalón: <b>' + m[1] + ' a ' + m[2] + '</b> <span class="aprox">(aprox.)</span></span>' +
+    '<span class="nota-316">Es UN solo cinturón que agarra todas esas tallas: no tienes que elegir talla.</span>';
 }
 function renderFicha(indice){
   const e = ENTRADA_POR_ID[fichaEntradaId];
@@ -1976,8 +2083,8 @@ function renderFicha(indice){
             (v.disponible ? '' : (v.proximamente ? ' · Próximamente' : (v.restock ? ' · En camino' : ' · Agotado'))) + '</button>').join('') +
           '</div></div>'
         : '') +
-      (p.cyber && p.disponible && ofertaActiva(p, ahora)
-        ? '<div><span class="tag tag-cyber">CYBER WOW</span>' + (p.disponible && etiquetaTemp(p.nombre, ahora) ? ' <span class="tag tag-ultimo">' + esc(etiquetaTemp(p.nombre, ahora)) + '</span>' : '') + '</div>'
+      (p.disponible && (ofertaDe(p, ahora) || {}).campana
+        ? '<div><span class="tag tag-cyber">' + esc(etiquetaCampana()) + '</span>' + (p.disponible && etiquetaTemp(p.nombre, ahora) ? ' <span class="tag tag-ultimo">' + esc(etiquetaTemp(p.nombre, ahora)) + '</span>' : '') + '</div>'
         : '') +
       '<div class="ficha-precios">' + preciosHTML(p, ahora) + '</div>' +
       // Restock en camino: botón amarillo que baja al "Avísame".
@@ -1994,7 +2101,7 @@ function renderFicha(indice){
         // En cinturones la talla es la del pantalón (así está en el Canva), con
         // una "?" que explica cómo medirse; en el resto, "Tallas" a secas.
         (esCinturon && p.tallas
-          ? '<div class="dato"><dt>Tallas de pantalón ' + infoHTML('¿Cómo saber tu talla?', '<b>¿Cómo saber tu talla?</b>' + guia) + '</dt><dd>' + tallasCinturonHTML(p.tallas, p.nombre) + '</dd></div>'
+          ? '<div class="dato"><dt>Talla y medidas ' + infoHTML('¿Cómo saber tu talla?', '<b>¿Cómo saber tu talla?</b>' + guia) + '</dt><dd>' + tallasCinturonHTML(p.tallas, p.nombre) + '</dd></div>'
           : dato('Tallas', p.tallas)) +
         (p.material
           ? '<div class="dato"><dt>Material</dt><dd>' + esc(p.material) +
@@ -2640,13 +2747,14 @@ function ruta(){
   fichaOv.hidden = abierto !== fichaOv;
   carritoOv.hidden = abierto !== carritoOv;
   comboOv.hidden = abierto !== comboOv;
-  bloquearFondo(!!abierto);
+  bloquearFondo(!!abierto || codigoAbierto);
   if(abierto === fichaOv) renderFicha(indiceNuevo);
   if(abierto === carritoOv) renderCarrito();
   if(abierto === comboOv) renderCombo();
   if(abierto) abierto.querySelector('.sheet').scrollTop = 0;
 }
 function cerrarHoja(){
+  if(codigoAbierto){ cerrarCodigo(); return; }   // la ventana del código no usa el "#" de la dirección
   // Un combo abierto desde una ficha: la ✕ cierra TODO (para volver a la ficha
   // está la flecha "←"); si no, "cerrar" es lo mismo que "atrás".
   if(comboDesdeFicha && location.hash.indexOf('#/combo/') === 0){
@@ -2672,8 +2780,12 @@ window.addEventListener('hashchange', () => {
   ruta();
 });
 document.addEventListener('click', e => {
+  if(e.target.closest('[data-codigo-abrir]')){ abrirCodigo(); return; }
   // Cierra con la ✕, con un botón "seguir viendo" o tocando el fondo oscuro.
   if(e.target.closest('[data-cerrar]') || e.target.classList.contains('overlay')) cerrarHoja();
+});
+document.addEventListener('submit', e => {
+  if(e.target && e.target.id === 'codigoForm'){ e.preventDefault(); probarCodigo(document.getElementById('codigoInput').value); }
 });
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && document.body.classList.contains('sin-scroll')) cerrarHoja();
@@ -2708,6 +2820,7 @@ function calcFirma(ahora){
   return PRODUCTOS.map(p => ofertaActiva(p, ahora) ? '1' : '0').join('') + '|' +
          PROMOS.map(pr => (promoActiva(pr, ahora) ? '1' : '0') + (promoVisible(pr, ahora) ? '1' : '0')).join('') + '|' + (campanaHeroVigente(ahora) ? '1' : '0') +
          '|' + JSON.stringify(etapaDe(cfg.CAMPANA_HERO, ahora) || '') +
+         '|' + (botonCodigoVisible(ahora) ? '1' : '0') + (tieneAcceso(ahora) ? '1' : '0') +
          '|' + Object.keys(cfg.ETIQUETAS_TEMP || {}).map(n => etiquetaTemp(n, ahora) ? '1' : '0').join('');
 }
 setInterval(() => {
