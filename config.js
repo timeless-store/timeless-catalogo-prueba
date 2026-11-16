@@ -182,7 +182,7 @@ const CATALOGO_CONFIG = {
   PROMOS_TITULO: '',
   PROMOS_ETIQUETA: '',                           // arriba del título al abrir un combo (vacío = "Promoción")
   PROMOS_HERO: '',                                // botón grande del inicio (vacío = "🔥 Promos disponibles")
-  PROMOS_HERO_SUB: 'Combo cinturón premium + collar con envío gratis desde S/79',    // primera parte de la línea de abajo del botón (vacío = solo la fecha)
+  PROMOS_HERO_SUB: 'Combos con cinturón premium y envío gratis',    // primera parte de la línea de abajo del botón (vacío = solo la fecha)
   PROMOS_SUBTITULO: 'Envío gratis en estos combos. Toca un combo para ver las fotos y videos de cada producto y agrégalo al carrito: el precio de la promo se aplica solo.',
 
   // Solo para la página de PRUEBAS: muestra las promos aunque todavía no llegue su
